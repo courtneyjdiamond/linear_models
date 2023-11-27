@@ -42,7 +42,7 @@ Let's look at our model.
 ```{r}
 summary(fit)$coef
 coef(fit)
-fitted.values(fit)
+## fitted.values(fit)
 ```
 
 Tidy up the output instead. 
@@ -112,4 +112,57 @@ anova(fit_null, fit_alt) |>
 
 ## Borough-level differences
 
+Use interaction effects
+
+```{r}
+fit3 = nyc_airbnb |> 
+  lm(price ~ stars * borough + room_type * borough, data = _)
+
+fit3 |> 
+  broom::tidy()
+```
+
+Alternative: create separate models for each borough
+
+```{r}
+airbnb_lm = function(df) {
+  fit = 
+    lm(price ~ stars + room_type, data = df)
+}
+
+nyc_airbnb |> 
+  nest(df = -borough) |> 
+  mutate(
+    models = map(df, airbnb_lm), 
+    results = map(models, broom::tidy)
+  ) |> 
+  select(borough, results) |> 
+  unnest(results) |> 
+  select(borough, term, estimate) |> 
+  pivot_wider(
+    names_from = term, 
+    values_from = estimate
+  ) |> 
+  knitr::kable(digits = 2)
+```
+
+Same thing, but slightly differently using an anon function
+
+```{r}
+
+nyc_airbnb |> 
+  nest(df = -borough) |> 
+  mutate(
+    models = map(df, \(df) lm(price ~ stars + room_type, data = df)), 
+    results = map(models, broom::tidy)
+  ) |> 
+  select(borough, results) |> 
+  unnest(results) |> 
+  select(borough, term, estimate) |> 
+  pivot_wider(
+    names_from = term, 
+    values_from = estimate
+  ) |> 
+  knitr::kable(digits = 2)
+```
 

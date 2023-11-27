@@ -1,0 +1,31 @@
+---
+title: "Linear Models"
+author: "Courtney Diamond"
+date: "2023-11-27"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load key packages
+
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+```
+
+## Load and clean the airbnb data
+```{r}
+data("nyc_airbnb")
+
+nyc_airbnb = 
+  nyc_airbnb |> 
+  mutate(stars = review_scores_location /2) |> 
+  select(price, stars, borough = neighbourhood_group, neighbourhood, room_type) |> 
+  filter(borough != "Staten Island")
+
+view(nyc_airbnb)
+```
+
